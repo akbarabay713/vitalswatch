@@ -1,122 +1,50 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { lazy, Suspense } from 'react'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
+import { DashboardLayout } from '@/components/templates/DashboardLayout'
+import { ErrorPage } from '@/pages/ErrorPage'
 
-function App() {
-  const [count, setCount] = useState(0)
+// code-split routes so the recharts-heavy timeline stays out of the other chunks
+const TimelinePage = lazy(() =>
+  import('@/pages/TimelinePage').then((m) => ({ default: m.TimelinePage })),
+)
+const CommitDeepDivePage = lazy(() =>
+  import('@/pages/CommitDeepDivePage').then((m) => ({
+    default: m.CommitDeepDivePage,
+  })),
+)
+const RoiPage = lazy(() =>
+  import('@/pages/RoiPage').then((m) => ({ default: m.RoiPage })),
+)
+const ComparePage = lazy(() =>
+  import('@/pages/ComparePage').then((m) => ({ default: m.ComparePage })),
+)
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+const RouteFallback = () => (
+  <div className="flex h-64 items-center justify-center text-sm text-ink-subtle">
+    Loading…
+  </div>
+)
 
-      <div className="ticks"></div>
+const suspended = (node: React.ReactNode) => (
+  <Suspense fallback={<RouteFallback />}>{node}</Suspense>
+)
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <DashboardLayout />,
+    errorElement: <ErrorPage />,
+    children: [
+      { index: true, element: suspended(<TimelinePage />) },
+      { path: 'commits', element: suspended(<CommitDeepDivePage />) },
+      { path: 'commits/:hash', element: suspended(<CommitDeepDivePage />) },
+      { path: 'compare', element: suspended(<ComparePage />) },
+      { path: 'roi', element: suspended(<RoiPage />) },
+      { path: '*', element: <Navigate to="/" replace /> },
+    ],
+  },
+])
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
-}
+const App = () => <RouterProvider router={router} />
 
 export default App

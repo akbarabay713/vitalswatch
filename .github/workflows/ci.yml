@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    name: Lint, test, build & vitals gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      # Core Web Vitals regression gate. In a full setup the report would come
+      # from a Lighthouse-CI / web-vitals run against a preview deploy; here it
+      # runs against the committed sample so the pipeline is reproducible.
+      # Point it at the real artifact with:  npm run vitals-gate path/to/report.json
+      - name: Core Web Vitals gate
+        run: npm run vitals-gate

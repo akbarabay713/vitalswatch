@@ -1,111 +1,188 @@
+@import 'tailwindcss';
+
+/*
+ * VitalsWatch design system
+ * Dark, instrument-panel aesthetic for a developer-tooling dashboard.
+ * Semantic color scale maps to Web Vitals health states:
+ *   good  -> emerald   needs -> amber   poor -> rose
+ */
+@theme {
+  --color-canvas: #0a0e14;
+  --color-surface: #11161f;
+  --color-surface-raised: #161d28;
+  --color-overlay: #1c2533;
+  --color-border: #1f2937;
+  --color-border-strong: #2c3a4f;
+
+  --color-ink: #e6edf3;
+  --color-ink-muted: #8b98a9;
+  --color-ink-subtle: #56657a;
+
+  --color-brand: #5b8def;
+  --color-brand-soft: #1e2f4d;
+
+  --color-good: #34d399;
+  --color-good-soft: #0f2e25;
+  --color-needs: #fbbf24;
+  --color-needs-soft: #2e2510;
+  --color-poor: #fb7185;
+  --color-poor-soft: #321019;
+
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Cascadia Code',
+    'Fira Code', monospace;
+
+  --radius-card: 0.875rem;
+}
+
+/* Dark is the default. color-scheme keeps native form controls in step. */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  color-scheme: dark;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
+/*
+ * Light theme — overrides the same semantic tokens so every utility, the
+ * Recharts colors (which read var(--color-*)), and the soft badge backgrounds
+ * re-theme from one place. Toggled via data-theme on <html>.
+ */
+:root[data-theme='light'] {
+  color-scheme: light;
 
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+  --color-canvas: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-surface-raised: #fbfcfe;
+  --color-overlay: #eef1f6;
+  --color-border: #e2e7ee;
+  --color-border-strong: #c8d1dd;
+
+  --color-ink: #0f1b2d;
+  --color-ink-muted: #51607a;
+  --color-ink-subtle: #8595ab;
+
+  --color-brand: #2f6fed;
+  --color-brand-soft: #dfeafd;
+
+  --color-good: #0f9d6b;
+  --color-good-soft: #d5f2e6;
+  --color-needs: #b97309;
+  --color-needs-soft: #fbeccd;
+  --color-poor: #dc3a52;
+  --color-poor-soft: #fbdfe4;
 }
 
+html,
+body,
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+  height: 100%;
 }
 
 body {
   margin: 0;
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+/* Subtle ambient glow on the canvas, evokes a monitoring console */
+#root {
+  background-image:
+    radial-gradient(circle at 15% 0%, rgba(91, 141, 239, 0.06), transparent 40%),
+    radial-gradient(circle at 85% 10%, rgba(52, 211, 153, 0.04), transparent 35%);
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 999px;
+  border: 2px solid var(--color-canvas);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Range input baseline reset — styled per-component via CVA */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+/*
+ * Slider thumb — pseudo-elements can't be reached by Tailwind utilities, so the
+ * thumb lives here while the track fill is computed inline from the value.
+ */
+.vw-slider {
+  height: 6px;
+  border-radius: 999px;
+}
+.vw-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 16px;
+  width: 16px;
+  border-radius: 999px;
+  background: var(--color-ink);
+  border: 3px solid var(--color-brand);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+  transition: transform 0.1s ease;
+}
+.vw-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+.vw-slider::-moz-range-thumb {
+  height: 16px;
+  width: 16px;
+  border-radius: 999px;
+  background: var(--color-ink);
+  border: 3px solid var(--color-brand);
+}
+.vw-slider:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+/*
+ * Print / Save-as-PDF. The app chrome is tagged `print:hidden`; the ROI report
+ * is `hidden print:block`. Here we force a light, ink-saving palette and let the
+ * report's accent colors through. No export dependency — the browser does it.
+ */
+@page {
+  margin: 1.4cm;
+}
+
+@media print {
+  :root {
+    color-scheme: light;
+    --color-canvas: #ffffff;
+    --color-surface: #ffffff;
+    --color-surface-raised: #ffffff;
+    --color-overlay: #f1f4f8;
+    --color-border: #d8dee8;
+    --color-border-strong: #b9c3d1;
+    --color-ink: #0f1b2d;
+    --color-ink-muted: #3f4c61;
+    --color-ink-subtle: #6b7890;
+    --color-brand: #2f6fed;
+    --color-good: #0f8f62;
+    --color-needs: #a9650a;
+    --color-poor: #cf3145;
   }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
+
+  body {
+    background: #ffffff;
   }
-}
-p {
-  margin: 0;
-}
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
+  #root {
+    background-image: none;
+  }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+  .roi-report {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
