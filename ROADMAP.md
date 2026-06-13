@@ -159,14 +159,18 @@ is the seam — only the adapter changes, nothing downstream.
       detection + validation), `psi.test.ts` and `crux.test.ts` (fetch mocked).
       84 tests total, all green.
 
+- [x] **Stale-while-revalidate caching** — network sources (PSI / CrUX) carry a
+      `cacheKey`; the data store caches their last result in `localStorage`
+      (`src/lib/sourceCache.ts`) and, on re-selection, shows it instantly while
+      re-fetching in the background. The sidebar surfaces a live "Updated Xm ago"
+      timestamp and a "Refreshing…" state, and keeps stale data visible if a
+      revalidation fails. Cache + store SWR transitions are unit-tested.
+
 ### Planned for v2.x
 
 - [ ] **LHCI server integration** — instead of a file upload, point the adapter
       at a running `@lhci/server` instance (project slug + API token) and pull
       historical runs automatically. Eliminates the manual export step.
-- [ ] **Stale-while-revalidate caching** — cache the last PSI/CrUX response in
-      `localStorage` and show it immediately while re-fetching in the
-      background; surface a "last updated" timestamp in the sidebar.
 
 ---
 

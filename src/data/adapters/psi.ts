@@ -67,6 +67,7 @@ export const createPsiSource = (config: PsiConfig): CommitSource => {
   return {
     id: 'psi',
     label: `PageSpeed Insights · ${hostname}`,
+    cacheKey: `psi:${config.url}:${strategy}`,
     load: async () => {
       const params = new URLSearchParams({
         url: config.url,

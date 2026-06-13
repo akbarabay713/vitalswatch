@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { cn } from '@/lib/cn'
 import { Badge, ratingToTone } from '@/components/atoms/Badge'
 import { rateCommit } from '@/data/thresholds'
+import { formatRelativeTime } from '@/lib/format'
 import { useDataset } from '@/data/dataset'
 import { useDataStore } from '@/store/useDataStore'
 import { ThemeToggle } from '@/components/molecules/ThemeToggle'
@@ -28,8 +29,16 @@ interface AppSidebarProps {
 
 export const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
   const { head, alerts } = useDataset()
-  const { source, status } = useDataStore()
+  const { source, status, lastUpdated } = useDataStore()
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [, tick] = useReducer((n: number) => n + 1, 0)
+
+  // keep the "updated Xm ago" label fresh while the sidebar sits idle
+  useEffect(() => {
+    if (!lastUpdated) return
+    const id = setInterval(tick, 30_000)
+    return () => clearInterval(id)
+  }, [lastUpdated])
 
   const health = head ? rateCommit(head.vitals) : 'good'
 
@@ -114,7 +123,7 @@ export const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
           )}
 
           <div className="mt-1 flex items-center gap-1.5">
-            {status === 'loading' && (
+            {(status === 'loading' || status === 'revalidating') && (
               <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-brand" aria-hidden />
             )}
             <button
@@ -134,6 +143,14 @@ export const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
               <span aria-hidden className="text-xs">⚙</span>
             </button>
           </div>
+
+          {lastUpdated && status !== 'error' && (
+            <div className="mt-1 text-[10px] text-ink-subtle">
+              {status === 'revalidating'
+                ? 'Refreshing…'
+                : `Updated ${formatRelativeTime(lastUpdated)}`}
+            </div>
+          )}
 
           {status === 'error' && (
             <div className="mt-2 text-[10px] text-poor">Load failed — check settings</div>

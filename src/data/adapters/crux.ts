@@ -77,6 +77,7 @@ export const createCruxSource = (config: CruxConfig): CommitSource => {
   return {
     id: 'crux',
     label: `CrUX field data · ${hostname}`,
+    cacheKey: `crux:${config.origin}:${formFactor}`,
     load: async () => {
       const res = await fetch(
         `https://chromeuxreport.googleapis.com/v1/records:queryRecord?key=${encodeURIComponent(config.apiKey)}`,

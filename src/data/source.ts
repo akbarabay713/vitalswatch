@@ -4,6 +4,9 @@ import type { CommitData } from './types'
 export interface CommitSource {
   readonly id: string
   readonly label: string
+  // Stable key for stale-while-revalidate caching. Omit for sources that can't
+  // meaningfully revalidate (the mock, file uploads).
+  readonly cacheKey?: string
   load(): Promise<CommitData[]>
 }
 
