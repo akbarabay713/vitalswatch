@@ -35,6 +35,8 @@ const ScenarioBadge = ({ commit }: { commit: CommitData }) => {
 
 export const RoiPage = () => {
   const { commits } = useDataset()
+  // impactScenarios() reads the data store; recompute when its commits change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const scenarios = useMemo(() => impactScenarios(), [commits])
   const scenarioHash = useRoiStore((s) => s.scenarioHash)
   const setScenario = useRoiStore((s) => s.setScenario)

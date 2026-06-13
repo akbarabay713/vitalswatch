@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { useDataStore } from '@/store/useDataStore'
 import { createMockCommitSource } from '@/data/source'
 import { createPsiSource } from '@/data/adapters/psi'
+import { createCruxSource } from '@/data/adapters/crux'
 import { createLhciSource, readJsonFile } from '@/data/adapters/lhci'
 import { Button } from '@/components/atoms/Button'
 import { cn } from '@/lib/cn'
@@ -10,11 +11,12 @@ interface SourceSettingsProps {
   onClose: () => void
 }
 
-type Tab = 'mock' | 'psi' | 'lhci'
+type Tab = 'mock' | 'psi' | 'crux' | 'lhci'
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'mock', label: 'Simulator' },
-  { id: 'psi', label: 'PageSpeed Insights' },
+  { id: 'psi', label: 'PageSpeed' },
+  { id: 'crux', label: 'CrUX field' },
   { id: 'lhci', label: 'Lighthouse CI' },
 ]
 
@@ -26,6 +28,11 @@ export const SourceSettings = ({ onClose }: SourceSettingsProps) => {
   const [psiUrl, setPsiUrl] = useState('')
   const [psiKey, setPsiKey] = useState('')
   const [psiStrategy, setPsiStrategy] = useState<'mobile' | 'desktop'>('mobile')
+
+  // CrUX form
+  const [cruxOrigin, setCruxOrigin] = useState('')
+  const [cruxKey, setCruxKey] = useState('')
+  const [cruxForm, setCruxForm] = useState<'PHONE' | 'DESKTOP'>('PHONE')
 
   // LHCI form
   const fileRef = useRef<HTMLInputElement>(null)
@@ -42,6 +49,12 @@ export const SourceSettings = ({ onClose }: SourceSettingsProps) => {
   const applyPsi = () => {
     if (!psiUrl.trim()) return
     setSource(createPsiSource({ url: psiUrl.trim(), apiKey: psiKey.trim() || undefined, strategy: psiStrategy }))
+      .then(() => { if (useDataStore.getState().status === 'ready') onClose() })
+  }
+
+  const applyCrux = () => {
+    if (!cruxOrigin.trim() || !cruxKey.trim()) return
+    setSource(createCruxSource({ origin: cruxOrigin.trim(), apiKey: cruxKey.trim(), formFactor: cruxForm }))
       .then(() => { if (useDataStore.getState().status === 'ready') onClose() })
   }
 
@@ -187,6 +200,70 @@ export const SourceSettings = ({ onClose }: SourceSettingsProps) => {
                 disabled={busy || !psiUrl.trim()}
               >
                 {busy && source.id === 'psi' ? 'Fetching…' : 'Fetch audit'}
+              </Button>
+            </div>
+          )}
+
+          {tab === 'crux' && (
+            <div className="space-y-4">
+              <p className="text-sm text-ink-muted">
+                Pulls the 28-day P75 of real Chrome users (field data) for an
+                origin from the Chrome UX Report API. Requires a Google API key
+                with the CrUX API enabled.
+              </p>
+              <div className="space-y-3">
+                <label className="block">
+                  <span className="mb-1 block text-xs font-medium text-ink">
+                    Origin <span className="text-poor">*</span>
+                  </span>
+                  <input
+                    type="url"
+                    placeholder="https://example.com"
+                    value={cruxOrigin}
+                    onChange={(e) => setCruxOrigin(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-canvas px-3 py-2 text-sm text-ink placeholder:text-ink-subtle focus:border-brand focus:outline-none"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-xs font-medium text-ink">
+                    API key <span className="text-poor">*</span>
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="AIza…"
+                    value={cruxKey}
+                    onChange={(e) => setCruxKey(e.target.value)}
+                    className="w-full rounded-lg border border-border bg-canvas px-3 py-2 font-mono text-sm text-ink placeholder:text-ink-subtle focus:border-brand focus:outline-none"
+                  />
+                </label>
+                <div>
+                  <span className="mb-1.5 block text-xs font-medium text-ink">
+                    Form factor
+                  </span>
+                  <div className="flex gap-2">
+                    {(['PHONE', 'DESKTOP'] as const).map((f) => (
+                      <button
+                        key={f}
+                        type="button"
+                        onClick={() => setCruxForm(f)}
+                        className={cn(
+                          'rounded-md border px-3 py-1 text-xs capitalize transition-colors',
+                          cruxForm === f
+                            ? 'border-brand bg-brand-soft text-brand'
+                            : 'border-border text-ink-muted hover:border-border-strong',
+                        )}
+                      >
+                        {f.toLowerCase()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <Button
+                onClick={applyCrux}
+                disabled={busy || !cruxOrigin.trim() || !cruxKey.trim()}
+              >
+                {busy && source.id === 'crux' ? 'Fetching…' : 'Fetch field data'}
               </Button>
             </div>
           )}

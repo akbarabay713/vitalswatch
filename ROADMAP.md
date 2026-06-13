@@ -141,23 +141,26 @@ is the seam — only the adapter changes, nothing downstream.
       LHR audits (LCP / INP / CLS) into a `CommitData` entry, and streams it
       into the dashboard. Supports an optional API key and mobile / desktop
       strategy toggle.
+- [x] **CrUX field-data adapter** (`src/data/adapters/crux.ts`) — pulls the
+      28-day P75 of real Chrome users (LCP / INP / CLS) for an origin from the
+      Chrome UX Report API. Needs a Google API key; surfaces real-world field
+      data alongside the lab sources.
 - [x] **Lighthouse CI adapter** (`src/data/adapters/lhci.ts`) — parses an
       uploaded JSON file whose records each carry `hash`, `author`, `date`,
       `message`, and a `lhr.audits` object. Auto-detects regressions as >10 %
       degradation vs the previous run.
 - [x] **Source settings modal** — gear icon in the sidebar opens a tabbed
-      panel: Simulator | PageSpeed Insights | Lighthouse CI. All source
+      panel: Simulator | PageSpeed | CrUX field | Lighthouse CI. All source
       switches trigger a loading indicator; errors surface inline.
 - [x] **Reactive data layer** — pages and organisms read from `useDataset()`
       (Zustand selector), so a source switch re-renders the entire dashboard
       without a page reload.
+- [x] **Adapter test coverage** — `lhci.test.ts` (pure transform + regression
+      detection + validation), `psi.test.ts` and `crux.test.ts` (fetch mocked).
+      84 tests total, all green.
 
 ### Planned for v2.x
 
-- [ ] **CrUX API** (`src/data/adapters/crux.ts`) — pull 28-day P75 field data
-      (LCP / INP / CLS) for any public origin from the Chrome UX Report API.
-      Needs a Google API key. No commit-level granularity — shows real-world
-      field trends alongside the lab data.
 - [ ] **LHCI server integration** — instead of a file upload, point the adapter
       at a running `@lhci/server` instance (project slug + API token) and pull
       historical runs automatically. Eliminates the manual export step.
