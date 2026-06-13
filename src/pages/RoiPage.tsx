@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useDataset } from '@/data/dataset'
 import { PageHeader } from '@/components/templates/PageHeader'
 import { Badge } from '@/components/atoms/Badge'
 import { Button } from '@/components/atoms/Button'
@@ -33,7 +34,8 @@ const ScenarioBadge = ({ commit }: { commit: CommitData }) => {
 }
 
 export const RoiPage = () => {
-  const scenarios = useMemo(() => impactScenarios(), [])
+  const { commits } = useDataset()
+  const scenarios = useMemo(() => impactScenarios(), [commits])
   const scenarioHash = useRoiStore((s) => s.scenarioHash)
   const setScenario = useRoiStore((s) => s.setScenario)
 

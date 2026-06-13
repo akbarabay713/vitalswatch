@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { PageHeader } from '@/components/templates/PageHeader'
 import { buttonVariants } from '@/components/atoms/Button'
@@ -9,7 +10,7 @@ import { BundleTreemap } from '@/components/organisms/BundleTreemap'
 import { RecommendationsPanel } from '@/components/organisms/RecommendationsPanel'
 import { ImpactCallout } from '@/components/organisms/ImpactCallout'
 import { Link } from 'react-router-dom'
-import { COMMITS, getCommitByHash } from '@/data/dataset'
+import { useDataset } from '@/data/dataset'
 import {
   commitScenario,
   regressionScenarios,
@@ -17,25 +18,29 @@ import {
   commitAddedCls,
 } from '@/data/impact'
 
-const severity = (hash: string): number => {
-  const commit = getCommitByHash(hash)!
-  return commitAddedDelayMs(commit) + commitAddedCls(commit) * 10_000
-}
-
 export const CommitDeepDivePage = () => {
   const { hash } = useParams<{ hash: string }>()
   const navigate = useNavigate()
+  const { commits, getCommitByHash } = useDataset()
 
-  // with no hash, open on the highest-impact regression
-  const fallback =
-    [...regressionScenarios()].sort(
-      (a, b) => severity(b.hash) - severity(a.hash),
-    )[0] ?? COMMITS[COMMITS.length - 1]
+  const fallback = useMemo(() => {
+    const severity = (h: string) => {
+      const c = getCommitByHash(h)
+      return c ? commitAddedDelayMs(c) + commitAddedCls(c) * 10_000 : 0
+    }
+    return (
+      [...regressionScenarios()].sort((a, b) => severity(b.hash) - severity(a.hash))[0] ??
+      commits[commits.length - 1]
+    )
+  }, [commits, getCommitByHash])
+
   const matched = hash ? getCommitByHash(hash) : undefined
-  const commit = matched || fallback
+  const commit = matched ?? fallback
   const notFound = Boolean(hash) && !matched
 
   const select = (h: string) => navigate(`/commits/${h}`)
+
+  if (!commit) return null
 
   return (
     <>
@@ -58,7 +63,7 @@ export const CommitDeepDivePage = () => {
       )}
 
       <CommitSelector
-        commits={COMMITS}
+        commits={commits}
         selectedHash={commit.hash}
         onSelect={select}
         searchable

@@ -73,9 +73,8 @@ commit in CI" — close that gap.
       the Web Vitals thresholds and exits non-zero on a poor metric; a GitHub
       Action (`.github/workflows/ci.yml`) runs lint → test → build → gate. A test
       asserts the gate's thresholds stay in sync with the app's.
-- [ ] **Ingest real measurements** — implement a `CommitSource` that reads
-      Lighthouse CI / `web-vitals` JSON artifacts or pulls CrUX field data
-      (needs external credentials/CI artifacts; the seam is ready for it).
+- [x] **Ingest real measurements** ✅ — PSI and LHCI adapters ship in v2; see
+      the v2 section below for detail.
 
 ### 2. Deep-dive depth ✅ done
 
@@ -121,6 +120,50 @@ commit in CI" — close that gap.
 - [x] **Responsive / mobile** ✅ — the sidebar collapses into a slide-in drawer
       with a top bar below `md`; content grids already stack.
 - [ ] **Framer Motion** — chart-point and page transitions (deferred in v1).
+
+---
+
+---
+
+## v2 — Real data ingestion
+
+Replace the seeded simulator with live measurements from real CI pipelines and
+Google's web performance APIs. The `CommitSource` interface (async `load()`)
+is the seam — only the adapter changes, nothing downstream.
+
+### ✅ v2 path — shipped
+
+- [x] **`CommitSource` made async** — `load()` now returns `Promise<CommitData[]>`;
+      the Zustand data store (`useDataStore`) initialises synchronously with the
+      mock data so there is no loading flash on first paint.
+- [x] **PageSpeed Insights adapter** (`src/data/adapters/psi.ts`) — fetches a
+      live Lighthouse audit for any public URL via the PSI API, converts the
+      LHR audits (LCP / INP / CLS) into a `CommitData` entry, and streams it
+      into the dashboard. Supports an optional API key and mobile / desktop
+      strategy toggle.
+- [x] **Lighthouse CI adapter** (`src/data/adapters/lhci.ts`) — parses an
+      uploaded JSON file whose records each carry `hash`, `author`, `date`,
+      `message`, and a `lhr.audits` object. Auto-detects regressions as >10 %
+      degradation vs the previous run.
+- [x] **Source settings modal** — gear icon in the sidebar opens a tabbed
+      panel: Simulator | PageSpeed Insights | Lighthouse CI. All source
+      switches trigger a loading indicator; errors surface inline.
+- [x] **Reactive data layer** — pages and organisms read from `useDataset()`
+      (Zustand selector), so a source switch re-renders the entire dashboard
+      without a page reload.
+
+### Planned for v2.x
+
+- [ ] **CrUX API** (`src/data/adapters/crux.ts`) — pull 28-day P75 field data
+      (LCP / INP / CLS) for any public origin from the Chrome UX Report API.
+      Needs a Google API key. No commit-level granularity — shows real-world
+      field trends alongside the lab data.
+- [ ] **LHCI server integration** — instead of a file upload, point the adapter
+      at a running `@lhci/server` instance (project slug + API token) and pull
+      historical runs automatically. Eliminates the manual export step.
+- [ ] **Stale-while-revalidate caching** — cache the last PSI/CrUX response in
+      `localStorage` and show it immediately while re-fetching in the
+      background; surface a "last updated" timestamp in the sidebar.
 
 ---
 

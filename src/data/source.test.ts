@@ -7,17 +7,17 @@ describe('CommitSource', () => {
     expect(commitSource.label).toBeTruthy()
   })
 
-  it('loads a full, stable commit history', () => {
-    const a = commitSource.load()
-    const b = commitSource.load()
+  it('loads a full, stable commit history', async () => {
+    const a = await commitSource.load()
+    const b = await commitSource.load()
     expect(a).toHaveLength(20)
     expect(a).toEqual(b)
   })
 
-  it('honours a seed for reproducible alternate datasets', () => {
-    const s1 = createMockCommitSource(1).load()
-    const s2 = createMockCommitSource(1).load()
-    const s3 = createMockCommitSource(2).load()
+  it('honours a seed for reproducible alternate datasets', async () => {
+    const s1 = await createMockCommitSource(1).load()
+    const s2 = await createMockCommitSource(1).load()
+    const s3 = await createMockCommitSource(2).load()
     expect(s1).toEqual(s2)
     expect(s1).not.toEqual(s3)
   })

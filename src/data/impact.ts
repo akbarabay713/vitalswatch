@@ -1,4 +1,4 @@
-import { COMMITS, getCommitIndex } from './dataset'
+import { getCommits, getCommitIndex } from './dataset'
 import type { ImpactScenario } from '@/lib/roi'
 import type { CommitData, RegressionType } from './types'
 
@@ -13,11 +13,12 @@ const LATENCY_VITAL: Record<RegressionType, 'lcp' | 'inp' | null> = {
 }
 
 export const commitAddedDelayMs = (commit: CommitData): number => {
+  const commits = getCommits()
   const idx = getCommitIndex(commit.hash)
   if (idx <= 0 || !commit.regressionType) return 0
   const vital = LATENCY_VITAL[commit.regressionType]
   if (!vital) return 0
-  const prev = COMMITS[idx - 1]
+  const prev = commits[idx - 1]
   const deltaMs =
     vital === 'lcp'
       ? (commit.vitals.lcp - prev.vitals.lcp) * 1000
@@ -26,9 +27,10 @@ export const commitAddedDelayMs = (commit: CommitData): number => {
 }
 
 export const commitAddedCls = (commit: CommitData): number => {
+  const commits = getCommits()
   const idx = getCommitIndex(commit.hash)
   if (idx <= 0 || commit.regressionType !== 'layout-shift') return 0
-  const prev = COMMITS[idx - 1]
+  const prev = commits[idx - 1]
   return Math.max(0, Number((commit.vitals.cls - prev.vitals.cls).toFixed(3)))
 }
 
@@ -43,7 +45,7 @@ export const hasImpact = (commit: CommitData): boolean => {
 }
 
 export const regressionScenarios = (): CommitData[] =>
-  COMMITS.filter((c) => c.isRegression).reverse()
+  getCommits().filter((c) => c.isRegression).reverse()
 
 export const impactScenarios = (): CommitData[] =>
   regressionScenarios().filter(hasImpact)
